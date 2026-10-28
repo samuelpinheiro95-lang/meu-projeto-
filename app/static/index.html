@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cortador IA</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="marca">✂️ <strong>Cortador IA</strong></div>
+    <div class="chips">
+      <span id="chip-ia" class="chip">IA: verificando…</span>
+      <span id="chip-disco" class="chip">Disco: …</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Biblioteca -->
+    <aside class="biblioteca">
+      <label id="area-envio" class="area-envio">
+        <input id="entrada-arquivo" type="file" accept="video/*,.mkv,.mts,.m2ts,.ts" multiple hidden>
+        <span class="icone">⬆️</span>
+        <span><strong>Enviar vídeo</strong><br><small>Arraste aqui ou clique. Sem limite de tamanho.</small></span>
+      </label>
+      <div id="envios"></div>
+      <h3>Seus vídeos</h3>
+      <ul id="lista-videos" class="lista-videos"></ul>
+    </aside>
+
+    <!-- Editor -->
+    <main id="editor" class="editor vazio">
+      <div class="aviso-vazio">
+        <h2>Comece enviando um vídeo</h2>
+        <p>A IA encontra os melhores momentos, gera legendas automáticas e exporta em 1080p, 1440p ou 4K.</p>
+      </div>
+
+      <section class="area-player">
+        <div class="titulo-video">
+          <h2 id="nome-video"></h2>
+          <span id="detalhes-video" class="detalhes"></span>
+          <button id="botao-apagar-video" class="botao fantasma perigo" title="Apagar vídeo e cortes">🗑 Apagar</button>
+        </div>
+        <div class="player-caixa">
+          <video id="player" controls preload="metadata" playsinline></video>
+          <div id="legenda-ao-vivo" class="legenda-ao-vivo"></div>
+          <div id="aviso-previa" class="aviso-previa" hidden>Preparando prévia para o navegador… <span></span></div>
+        </div>
+
+        <div class="linha-tempo-caixa">
+          <div id="linha-tempo" class="linha-tempo">
+            <div id="selecao" class="selecao" hidden></div>
+            <div id="cabeca" class="cabeca"></div>
+          </div>
+          <div class="controles-corte">
+            <span class="tempo"><span id="tempo-atual">0:00</span> / <span id="tempo-total">0:00</span></span>
+            <button class="botao" id="botao-inicio" title="Atalho: I">[ Marcar início</button>
+            <button class="botao" id="botao-fim" title="Atalho: O">Marcar fim ]</button>
+            <span id="texto-selecao" class="detalhes"></span>
+            <button class="botao primario" id="botao-adicionar">+ Adicionar corte</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="painel">
+        <nav class="abas">
+          <button class="aba ativa" data-aba="momentos">✨ Melhores momentos</button>
+          <button class="aba" data-aba="legendas">💬 Legendas</button>
+          <button class="aba" data-aba="exportar">🎬 Exportar</button>
+          <button class="aba" data-aba="cortes">📁 Cortes prontos <span id="contador-cortes"></span></button>
+        </nav>
+
+        <!-- Momentos -->
+        <div class="conteudo-aba" data-aba="momentos">
+          <div class="formulario">
+            <label>Quantos cortes<input id="m-quantidade" type="number" min="1" max="30" value="5"></label>
+            <label>Duração mínima (s)<input id="m-min" type="number" min="3" value="15"></label>
+            <label>Duração máxima (s)<input id="m-max" type="number" min="5" value="60"></label>
+            <label class="largo">O que procurar (opcional)
+              <input id="m-instrucoes" type="text" placeholder="ex.: momentos engraçados, dicas práticas, frases de impacto…">
+            </label>
+            <label class="caixa-marcar"><input id="m-ia" type="checkbox" checked> Usar IA (Claude)</label>
+            <button class="botao primario" id="botao-momentos">✨ Encontrar melhores momentos</button>
+          </div>
+          <div id="progresso-momentos" class="progresso" hidden><div></div><span></span></div>
+          <div class="barra-lista">
+            <label class="caixa-marcar"><input id="marcar-todos" type="checkbox"> Selecionar todos</label>
+            <span class="detalhes">Clique em um corte para assistir. Ajuste os tempos se quiser.</span>
+          </div>
+          <ul id="lista-momentos" class="lista-momentos"></ul>
+        </div>
+
+        <!-- Legendas -->
+        <div class="conteudo-aba" data-aba="legendas" hidden>
+          <div class="formulario">
+            <label>Idioma
+              <select id="l-idioma">
+                <option value="">Detectar automaticamente</option>
+                <option value="pt">Português</option>
+                <option value="en">Inglês</option>
+                <option value="es">Espanhol</option>
+                <option value="fr">Francês</option>
+                <option value="it">Italiano</option>
+                <option value="de">Alemão</option>
+              </select>
+            </label>
+            <label>Precisão
+              <select id="l-modelo">
+                <option value="">Padrão do app</option>
+                <option value="base">Rápida</option>
+                <option value="small">Boa</option>
+                <option value="medium">Ótima (mais lenta)</option>
+                <option value="large-v3">Máxima (bem mais lenta)</option>
+              </select>
+            </label>
+            <button class="botao primario" id="botao-transcrever">💬 Gerar legenda automática</button>
+            <a class="botao" id="botao-baixar-srt" href="#" hidden>⬇ Baixar .srt</a>
+          </div>
+          <div id="progresso-legendas" class="progresso" hidden><div></div><span></span></div>
+          <ul id="lista-transcricao" class="lista-transcricao"></ul>
+        </div>
+
+        <!-- Exportar -->
+        <div class="conteudo-aba" data-aba="exportar" hidden>
+          <p id="resumo-exportar" class="detalhes"></p>
+          <div class="formulario grade">
+            <label>Resolução
+              <select id="e-resolucao">
+                <option value="1080p" selected>1080p (Full HD)</option>
+                <option value="1440p">1440p (2K)</option>
+                <option value="4k">2160p (4K)</option>
+                <option value="original">Original</option>
+              </select>
+            </label>
+            <label>Formato
+              <select id="e-formato">
+                <option value="original">Original</option>
+                <option value="9:16">Vertical 9:16 (Reels, Shorts, TikTok)</option>
+                <option value="1:1">Quadrado 1:1</option>
+                <option value="4:5">Retrato 4:5 (feed Instagram)</option>
+                <option value="16:9">Horizontal 16:9 (YouTube)</option>
+              </select>
+            </label>
+            <label>Qualidade
+              <select id="e-qualidade">
+                <option value="rapida">Rápida (arquivo menor)</option>
+                <option value="alta" selected>Alta</option>
+                <option value="maxima">Máxima (mais lenta)</option>
+              </select>
+            </label>
+            <label>Legenda
+              <select id="e-legenda">
+                <option value="nenhuma">Sem legenda</option>
+                <option value="embutida" selected>Gravada no vídeo</option>
+                <option value="arquivo">Arquivo .srt separado</option>
+                <option value="ambas">Gravada + arquivo .srt</option>
+              </select>
+            </label>
+            <label>Estilo da legenda
+              <select id="e-estilo">
+                <option value="padrao">Branca com contorno</option>
+                <option value="destaque">Amarela destaque</option>
+                <option value="caixa">Branca em caixa preta</option>
+              </select>
+            </label>
+            <label>Como exportar
+              <select id="e-modo">
+                <option value="separados">Um arquivo por corte</option>
+                <option value="juntar">Juntar tudo em um vídeo</option>
+              </select>
+            </label>
+          </div>
+          <p id="aviso-upscale" class="aviso" hidden></p>
+          <button class="botao primario grande" id="botao-exportar">🎬 Exportar cortes selecionados</button>
+          <div id="progresso-exportar" class="progresso" hidden><div></div><span></span></div>
+        </div>
+
+        <!-- Cortes prontos -->
+        <div class="conteudo-aba" data-aba="cortes" hidden>
+          <ul id="lista-cortes" class="lista-cortes"></ul>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="avisos" class="avisos"></div>
+  <script src="app.js"></script>
+</body>
+</html>
